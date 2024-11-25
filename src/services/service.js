@@ -1,50 +1,50 @@
-
 const User = require("../models/index");
 
-
-const userService =()=>{
-    const signUserUp = async (req, res) =>{
-        try{
-        let newUser = new User();
-        newUser.name = req.body.name;
-        newUser.Email_Address = req.body.Email_Address;
-        newUser.DateOfBIrth= req.body.DateOfBIrth;
-        newUser.Address = req.body.Address
-        newUser.Bio = req.body.Bio
-       
-        newUser.save()
-        .then(data =>{
-            res.send("User saved successfully")
-        })
-        .catch(err => {
-            console.log(err)
-            res.send("An error occured")
-            
-        })
-    }catch(error){
-        res.send("There is an error with your request")
-    }
-    }
-
-    const signUserIn = async (req, res) =>{
+const userService = () => {
+    const signUserUp = async (req, res) => {
         try {
-             const userData = User.find({
-             name: req.body.name
-            })
-           if (userData) {
-          (req.body.name, userData.name)
-           }
-        } catch (error) {
-            res.send("An error has occured")
+            const { name, Email_Address, DateOfBIrth, Address, Bio } = req.body;
 
+           
+            if (!name || !Email_Address || !DateOfBIrth) {
+                return res.status(400).send("Name, email, and date of birth are required.");
+            }
+
+            let newUser = new User();
+            newUser.name = name;
+            newUser.Email_Address = Email_Address;
+            newUser.DateOfBIrth = DateOfBIrth;
+            newUser.Address = Address;
+            newUser.Bio = Bio;
+
+            await newUser.save();
+            res.send("User saved successfully");
+        } catch (err) {
+            console.log(err);
+            res.status(500).send("An error occurred");
         }
-       
-        
-    }
+    };
 
-    return {signUserUp, signUserIn} 
-    
+    const signUserIn = async (req, res) => {
+        try {
+            const { name } = req.body;
+            if (!name) {
+                return res.status(400).send("Name is required.");
+            }
 
-}
+            const userData = await User.findOne({ name: req.body.name });
+            if (userData) {
+                res.send("User found");
+            } else {
+                res.send("User not found");
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("An error has occurred");
+        }
+    };
+
+    return { signUserUp, signUserIn };
+};
 
 module.exports = userService;
